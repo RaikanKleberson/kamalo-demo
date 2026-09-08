@@ -1,31 +1,42 @@
-# PedeAki — Catálogo Online com Pedido via WhatsApp
+# Kamalo — Sistema de Pedidos para Açaíterias
 
-> Catálogo online para negócios onde o cliente monta pedidos com vários itens e finaliza direto pelo WhatsApp, com o valor total sempre visível — eliminando o cancelamento por "susto no preço" que acontece quando o pedido é feito por telefone ou balcão.
+> **Status: DEMONSTRAÇÃO COMERCIAL**  
+> Esta é a versão de demonstração do Kamalo, adaptada para açaíterias e negócios de alimentação.  
+> O sistema já está 100% funcional e pronto para receber pedidos reais.  
+> 
+> 🔹 **Versão oficial em desenvolvimento:** [Kamalo V2 →](https://github.com/RaikanKleberson/kamalo)
 
 ---
 
-## O problema que o PedeAki resolve
+## O que é o Kamalo
 
-Em mercadinhos, mercearias, açougues, hamburguerias, pizzarias, autopeças e ferragistas, existe um gargalo silencioso:
+O **Kamalo** é um sistema de pedidos online desenvolvido especialmente para **açaíterias, hamburguerias, pamonharias, pizzarias e lanchonetes**. 
 
-1. O cliente monta o pedido ou escolhe os produtos
-2. O funcionário separa tudo manualmente
-3. O cliente descobre o valor total só no caixa
-4. O cliente desiste — e o funcionário precisa repor tudo
+O cliente acessa o cardápio pelo celular, monta o pedido com quantidade e observações, e envia direto para o WhatsApp da loja — com nome, endereço e valor total já calculados.
 
-Esse ciclo desperdiça tempo do colaborador, ocupa espaço e gera frustração dos dois lados.
+---
 
-**O PedeAki elimina esse gargalo.**
+## O problema que o Kamalo resolve
+
+Se você tem uma açaíteria, sabe como é:
+
+1. Cliente liga ou manda mensagem no WhatsApp
+2. Você anota o pedido, as coberturas, o tamanho
+3. Precisa perguntar endereço, calcular o total
+4. O cliente desiste porque ficou caro ou demorou
+
+**O Kamalo elimina esse gargalo.**
+
+Com ele, o cliente:
+- Vê todos os produtos com preços
+- Escolhe tamanhos e coberturas
+- Sabe o total antes de finalizar
+- Envia o pedido pronto para seu WhatsApp
 
 ---
 
 ## Como funciona
 
-O cliente acessa o catálogo online, seleciona os produtos com quantidade, visualiza o valor total em tempo real e finaliza o pedido diretamente pelo WhatsApp — com nome, endereço e lista completa já formatados.
-
-O funcionário recebe o pedido pronto, separa apenas o que foi confirmado e aguarda o pagamento.
-
-```
 Cliente acessa o catálogo
         ↓
 Seleciona produtos + quantidade
@@ -37,74 +48,92 @@ Informa nome e endereço
 Finaliza → WhatsApp da empresa com pedido completo
         ↓
 Funcionário separa e confirma entrega
+
 ```
 
+## Benefícios para sua açaíteria
+
+| Benefício | Como o Kamalo ajuda |
+|-----------|---------------------|
+| **Menos erros** | O pedido chega pronto, sem anotações manuais |
+| **Atendimento mais rápido** | Cliente finaliza sozinho, você só separa |
+| **Sem comissão** | Diferente do iFood, você não paga por pedido |
+| **Cliente fidelizado** | O pedido vai direto pro seu WhatsApp |
+| **Valor total visível** | Cliente vê o preço antes de finalizar |
+| **Funciona no celular** | Seu cliente acessa de qualquer lugar |
+
 ---
 
-## Funcionalidades atuais
+## Funcionalidades
 
-- Catálogo de produtos organizado por categorias
+- Cardápio digital organizado por categorias
 - Controle de quantidade por item
 - Cálculo de total em tempo real
-- Checkout com nome e endereço do cliente
-- Envio automático do pedido formatado para o WhatsApp do negócio
-- Dados de produtos carregados via Supabase (banco de dados em nuvem)
-- Validação defensiva de dados vindos do banco (evita quebra do catálogo com dados malformados)
-- Keep Alive automático via GitHub Actions para manter o banco ativo
+- Checkout com nome, endereço e observações
+- Envio automático do pedido formatado para o WhatsApp
+- Dados carregados via Supabase (banco de dados em nuvem)
+- Design responsivo (funciona no celular e computador)
 
 ---
 
-## Tecnologias utilizadas
+## Tecnologias
 
-| Camada         | Tecnologia            |
-| -------------- | --------------------- |
-| Frontend       | HTML, CSS, JavaScript |
+| Camada | Tecnologia |
+|--------|------------|
+| Frontend | HTML, CSS, JavaScript |
 | Banco de dados | Supabase (PostgreSQL) |
-| Hospedagem     | GitHub Pages          |
-| Automação      | GitHub Actions        |
-| Integração     | WhatsApp API (wa.me)  |
+| Hospedagem | GitHub Pages |
+| Integração | WhatsApp (wa.me) |
 
 ---
 
-## Roadmap — próximas versões
+## Demonstração ao vivo
 
-O PedeAki é um produto em evolução contínua. As próximas versões incluem:
+🔗 [Acessar demonstração do Kamalo](https://raikankleberson.github.io/kamalo-demo/)
 
-- [ ] Painel administrativo para o dono do negócio
-- [ ] Histórico de pedidos por cliente
-- [ ] Notificação de novo pedido em tempo real
-- [ ] Integração com Pix e boleto
-- [ ] Rastreio de entrega
-- [ ] Integração com Google Maps
-- [ ] Painel de relatórios e produtos mais vendidos
-- [ ] Sistema multi-tenant (uma instância por cliente)
+> O cardápio de demonstração utiliza produtos fictícios de açaí. Na implementação para sua loja, personalizamos com seus produtos, preços, fotos e WhatsApp.
 
 ---
 
-## Modelo comercial
+## Planos e preços
 
-O PedeAki é comercializado pela **NOKAIZ Tecnologia** no modelo de assinatura:
+| Plano | Preço | O que inclui |
+|-------|-------|--------------|
+| **Mensal** | **R$ 99,90/mês** | Sistema completo + suporte + atualizações |
+| **Implantação** | **Inclusa** | Configuração do cardápio com seus produtos |
 
-- **Implementação:** configuração inicial, cadastro de produtos e personalização
-- **Mensalidade:** manutenção, suporte e acesso às atualizações
-
-Voltado para negócios locais onde o cliente monta pedidos com vários itens por telefone ou WhatsApp, e quer digitalizar esse atendimento sem depender de aplicativos caros ou complexos.
-
----
-
-## Demonstração
-
-🔗 [Acessar demonstração ao vivo](https://raikankleberson.github.io/pedeaki-v1/)
-
-> O catálogo de demonstração utiliza produtos fictícios. A implementação para cada cliente é personalizada com os produtos, preços, logo e WhatsApp do próprio negócio.
+**Sem comissão por pedido.** Você paga apenas a mensalidade.
 
 ---
 
-## Contato
+## Por que escolher o Kamalo
 
-Interessado em implementar o PedeAki no seu negócio?
+| Vs. iFood | Vs. WhatsApp manual | Vs. sistemas caros |
+|-----------|---------------------|-------------------|
+| Sem comissão | Pedido organizado | Preço acessível |
+| Cliente é seu | Total automático | Fácil de configurar |
+| Canal próprio | Sem anotações | Feito para seu nicho |
 
-📲 [Falar com a NOKAIZ Tecnologia pelo WhatsApp](https://wa.me/63999665779)
+---
+
+## Como contratar
+
+1. **Entre em contato** pelo WhatsApp
+2. **Envie sua lista** de produtos, preços e fotos
+3. **Configuramos** seu cardápio em até 48h
+4. **Comece a receber pedidos** pelo seu link exclusivo
+
+📲 [Falar com a NOKAIZ Tecnologia pelo WhatsApp](https://wa.me/5563999665779)
+
+---
+
+## Sobre a Nokaiz Tecnologia
+
+O Kamalo é desenvolvido pela **NOKAIZ Tecnologia**, uma empresa focada em soluções digitais para pequenos e médios negócios. Nosso objetivo é facilitar a vida do empreendedor com tecnologia simples, acessível e que realmente funciona.
+
+---
+
+Desenvolvido por [Raikan Kleberson](https://github.com/RaikanKleberson) — [NOKAIZ Tecnologia](https://wa.me/5563999665779)
 
 ---
 
