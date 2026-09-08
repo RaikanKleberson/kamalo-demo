@@ -4,7 +4,7 @@
 > Esta é a versão de demonstração do Kamalo, adaptada para açaíterias e negócios de alimentação.  
 > O sistema já está 100% funcional e pronto para receber pedidos reais.  
 > 
-> 🔹 **Versão oficial em desenvolvimento:** [Kamalo V2 →](https://github.com/RaikanKleberson/kamalo)
+> 🔹 **Versão oficial em desenvolvimento:** [Kamalo V2 →](https://raikankleberson.github.io/kamalo/)
 
 ---
 
