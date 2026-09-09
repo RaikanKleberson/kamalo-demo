@@ -439,148 +439,184 @@ function aumentar(id) {
 
 // ===== DIMINUIR =====
 function diminuir(id) {
-
   id = String(id);
 
-  // Procura SOMENTE o produto clicado
   const produto = produtos.find(
-    (item) =>
-      String(item.id) === id
+    (item) => String(item.id) === id
   );
 
   if (!produto) {
+    console.error("Produto não encontrado:", id);
+    return;
+  }
 
-    console.error(
-      "Produto não encontrado:",
-      id
-    );
+  // TRAVA NO 1
+  // O botão - nunca remove o produto.
+  if (Number(produto.qtd) <= 1) {
+    produto.qtd = 1;
+
+    const el = document.getElementById(`qtd-${id}`);
+
+    if (el) {
+      el.textContent = "1";
+    }
 
     return;
   }
 
-  if (Number(produto.qtd) <= 0) {
-    return;
-  }
+  // Diminui somente 1 unidade
+  produto.qtd = Number(produto.qtd) - 1;
 
-  // Diminui somente este produto
-  produto.qtd =
-    Math.max(
-      0,
-      Number(produto.qtd || 0) - 1
-    );
-
-  const el =
-    document.getElementById(`qtd-${id}`);
+  const el = document.getElementById(`qtd-${id}`);
 
   if (el) {
     el.textContent = produto.qtd;
   }
 
   salvarDados();
+  atualizarCarrinho();
+}
 
+
+// ===== REMOVE PRODUTO DO CARRINHO =====
+function removerDoCarrinho(id) {
+  id = String(id);
+
+  const produto = produtos.find(
+    (item) => String(item.id) === id
+  );
+
+  if (!produto) {
+    console.error("Produto não encontrado:", id);
+    return;
+  }
+
+  // Remove o produto INDEPENDENTE da quantidade.
+  // Funciona com 1, 2, 10, 100...
+  produto.qtd = 0;
+
+  // Atualiza o contador no card do produto
+  const quantidadeCard = document.getElementById(`qtd-${id}`);
+
+  if (quantidadeCard) {
+    quantidadeCard.textContent = "0";
+  }
+
+  // Remove do localStorage
+  salvarDados();
+
+  // Atualiza o carrinho
   atualizarCarrinho();
 }
 
 // ===== ATUALIZA CARRINHO =====
 function atualizarCarrinho() {
+  const lista = document.getElementById("lista-produtos");
+  const totalDisplay = document.getElementById("total-pedido");
+  const contador = document.getElementById("carrinho-contador");
 
-  const lista =
-    document.getElementById(
-      "lista-produtos"
-    );
-
-  const totalDisplay =
-    document.getElementById(
-      "total-pedido"
-    );
-
-  const contador =
-    document.getElementById(
-      "carrinho-contador"
-    );
-
-  if (!lista || !totalDisplay) {
-    return;
-  }
+  if (!lista || !totalDisplay) return;
 
   lista.innerHTML = "";
 
   let total = 0;
-
-  // Quantidade de produtos DIFERENTES
   let produtosNoCarrinho = 0;
 
   produtos.forEach((produto) => {
+    const qtd = Number(produto.qtd || 0);
 
-    const qtd =
-      Number(produto.qtd || 0);
+    if (qtd <= 0) return;
 
-    // Produto sem quantidade não aparece
-    if (qtd <= 0) {
-      return;
-    }
-
-    const preco =
-      Number(produto.preco || 0);
-
-    const subtotal =
-      preco * qtd;
+    const preco = Number(produto.preco || 0);
+    const subtotal = preco * qtd;
 
     total += subtotal;
+    produtosNoCarrinho++;
 
-    // Conta cada produto somente uma vez
-    //
-    // Produto A = 10
-    // Produto B = 2
-    //
-    // produtosNoCarrinho = 2
-    //
-    // e NÃO 12.
-    produtosNoCarrinho += 1;
+    const id = String(produto.id);
 
-    const item =
-      document.createElement("div");
-
-    item.className =
-      "carrinho-item";
+    const item = document.createElement("div");
+    item.className = "carrinho-item";
 
     item.innerHTML = `
-      <span>
+      <span class="carrinho-produto-nome">
         ${qtd}x ${produto.nome}
       </span>
 
-      <span>
-        ${formatarPreco(subtotal)}
-      </span>
+      <div class="carrinho-controles">
+        <button
+          type="button"
+          class="carrinho-btn quantidade-menos"
+          data-id="${id}"
+        >
+          −
+        </button>
+
+        <span class="carrinho-quantidade">
+          ${qtd}
+        </span>
+
+        <button
+          type="button"
+          class="carrinho-btn quantidade-mais"
+          data-id="${id}"
+        >
+          +
+        </button>
+      </div>
+
+      <div class="carrinho-item-direita">
+        <span class="carrinho-preco">
+          ${formatarPreco(subtotal)}
+        </span>
+
+        <button
+          type="button"
+          class="btn-remover"
+          data-id="${id}"
+          title="Remover produto"
+        >
+          ×
+        </button>
+      </div>
     `;
+
+    // BOTÃO -
+    item
+      .querySelector(".quantidade-menos")
+      .addEventListener("click", () => {
+        diminuir(id);
+      });
+
+    // BOTÃO +
+    item
+      .querySelector(".quantidade-mais")
+      .addEventListener("click", () => {
+        aumentar(id);
+      });
+
+    // BOTÃO X - REMOVE O PRODUTO INTEIRO
+    item
+      .querySelector(".btn-remover")
+      .addEventListener("click", () => {
+        removerDoCarrinho(id);
+      });
 
     lista.appendChild(item);
   });
 
+  // Carrinho vazio
   if (produtosNoCarrinho === 0) {
-
     lista.innerHTML =
       '<p class="carrinho-vazio">Seu carrinho está vazio</p>';
   }
 
-  totalDisplay.textContent =
-    formatarPreco(total);
+  // Total
+  totalDisplay.textContent = formatarPreco(total);
 
+  // Contador de produtos diferentes
   if (contador) {
-
-    // Mostra a quantidade de produtos
-    // diferentes no carrinho.
-    //
-    // Exemplo:
-    // Produto A = 10
-    // Produto B = 2
-    //
-    // contador = 2
-    //
-    // A quantidade de cada produto
-    // continua independente.
-    contador.textContent =
-      produtosNoCarrinho;
+    contador.textContent = produtosNoCarrinho;
   }
 }
 

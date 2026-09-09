@@ -265,7 +265,7 @@ body {
   width: 100%;
   max-width: 500px;
   background: white;
-  padding: 20px 24px 24px;
+  padding: 14px 16px 18px;
   border-radius: 16px;
   margin: 30px auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -274,7 +274,7 @@ body {
 
 .carrinho h3 {
   color: #2c3e50;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   font-size: 1.2rem;
   display: flex;
   align-items: center;
@@ -288,47 +288,73 @@ body {
   font-size: 0.95rem;
 }
 
+/* Cada produto aparece em uma linha, como no modelo anterior */
 .carrinho-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eeeeee;
   font-size: 0.9rem;
 }
 
+/* Nome e quantidade */
 .carrinho-item span:first-child {
+  flex: 1;
+  min-width: 0;
   font-weight: 500;
+  color: #333;
+  text-align: left;
+  line-height: 1.3;
 }
 
+/* Preço */
 .carrinho-item span:last-child {
+  flex-shrink: 0;
   font-weight: 600;
   color: #6a1b9a;
+  text-align: right;
+  white-space: nowrap;
 }
 
+/* Caso o botão de remover esteja presente no HTML */
 .carrinho-item-direita {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .btn-remover {
-  background: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
   border: none;
+  border-radius: 50%;
+  background: #fdeceb;
   color: #e74c3c;
   cursor: pointer;
-  font-size: 0.9rem;
-  padding: 0 4px;
-  transition: transform 0.2s;
+  font-size: 0.85rem;
+  line-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .btn-remover:hover {
-  transform: scale(1.2);
+  transform: scale(1.08);
+  background: #e74c3c;
+  color: white;
 }
 
 .carrinho-total {
-  margin-top: 20px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 2px solid #6a1b9a;
   text-align: center;
 }
@@ -614,9 +640,22 @@ body {
   }
 
   .carrinho {
-    padding: 12px 14px;
+    padding: 12px 14px 16px;
     margin: 12px 8px;
     border-radius: 12px;
+  }
+
+  .carrinho-item {
+    min-height: 40px;
+    padding: 7px 0;
+    font-size: 0.82rem;
+  }
+
+  .btn-remover {
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    line-height: 20px;
   }
 
   #total-pedido {
@@ -656,4 +695,101 @@ body {
     right: 15px;
     bottom: 15px;
   }
+}
+
+/* ===== CONTROLES DO CARRINHO ===== */
+
+.carrinho-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 0;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.carrinho-produto-nome {
+  flex: 1;
+  min-width: 0;
+  color: #333;
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.carrinho-controles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.carrinho-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.carrinho-btn:hover {
+  background: #6a1b9a;
+  color: #fff;
+}
+
+.carrinho-quantidade {
+  min-width: 20px;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.carrinho-item-direita {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.carrinho-preco {
+  color: #6a1b9a;
+  font-size: 0.86rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-remover {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #fdeceb;
+  color: #e74c3c;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-remover:hover {
+  background: #e74c3c;
+  color: #fff;
+  transform: scale(1.08);
 }
