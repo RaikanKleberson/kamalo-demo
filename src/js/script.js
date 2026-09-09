@@ -7,24 +7,22 @@ const clienteSupabase = supabase.createClient(
   SUPABASE_KEY
 );
 
-const CHAVE_CARRINHO = "carrinho_pedeaki";
+const CHAVE_CARRINHO = "carrinho_kamalo";
 
+// ===== CATEGORIAS =====
 const CATEGORIAS = [
-  "acougue",
-  "hortifruti",
-  "mercearia",
-  "bebidas",
-  "limpeza"
+  "acai",
+  "combos",
+  "sorvetes",
+  "sucosnaturais",
+  "bebidas"
 ];
 
 let produtos = [];
-
 let slideAtual = 0;
 let intervaloCarrossel = null;
 
-
 // ===== NORMALIZA TEXTO =====
-// Remove acentos e deixa tudo em minúsculo.
 function normalizarTexto(valor) {
   return String(valor ?? "")
     .normalize("NFD")
@@ -32,7 +30,6 @@ function normalizarTexto(valor) {
     .trim()
     .toLowerCase();
 }
-
 
 // ===== FORMATA PREÇO =====
 function formatarPreco(valor) {
@@ -42,26 +39,18 @@ function formatarPreco(valor) {
   });
 }
 
-
-// ===== PEGA O NOME DO PRODUTO =====
+// ===== PEGA O NOME =====
 function obterNome(produto) {
   const valor = produto.nome;
 
   if (typeof valor === "object" && valor !== null) {
-    return (
-      valor.pt ||
-      valor.br ||
-      valor.name ||
-      valor.nome ||
-      "Produto sem nome"
-    );
+    return valor.pt || valor.br || valor.name || valor.nome || "Produto";
   }
 
-  return String(valor ?? "Produto sem nome");
+  return String(valor ?? "Produto");
 }
 
-
-// ===== PEGA O PREÇO DO PRODUTO =====
+// ===== PEGA O PREÇO =====
 function obterPreco(produto) {
   const valor = produto.preco;
 
@@ -77,26 +66,30 @@ function obterPreco(produto) {
   return Number(valor ?? 0);
 }
 
-
-// ===== PEGA A IMAGEM DO PRODUTO =====
+// ===== PEGA A IMAGEM (USA O FOTO_URL DO BANCO) =====
 function obterImagem(produto) {
-  return (
-    produto.foto_url ||
-    produto.imagem ||
-    produto.image_url ||
-    produto.foto ||
-    "src/images/produto-padrao.png"
-  );
-}
 
+  // USA O FOTO_URL DO BANCO
+  if (
+    produto.foto_url &&
+    produto.foto_url.startsWith("http")
+  ) {
+    return produto.foto_url;
+  }
+
+  // Fallback: placeholder
+  return "https://via.placeholder.com/300x300/6a1b9a/FFFFFF?text=Produto";
+}
 
 // ===== SALVA CARRINHO =====
 function salvarDados() {
   const quantidades = {};
 
   produtos.forEach((produto) => {
-    if (produto.qtd > 0) {
-      quantidades[String(produto.id)] = produto.qtd;
+    const qtd = Number(produto.qtd || 0);
+
+    if (qtd > 0) {
+      quantidades[String(produto.id)] = qtd;
     }
   });
 
@@ -105,7 +98,6 @@ function salvarDados() {
     JSON.stringify(quantidades)
   );
 }
-
 
 // ===== CARREGA CARRINHO SALVO =====
 function carregarDadosSalvos() {
@@ -118,10 +110,10 @@ function carregarDadosSalvos() {
   }
 }
 
-
-// ===== MOSTRA ERRO NO CATÁLOGO =====
+// ===== MOSTRA ERRO =====
 function mostrarErroCatalogo(mensagem) {
   CATEGORIAS.forEach((categoria) => {
+
     const container = document.getElementById(
       `${categoria}-produtos`
     );
@@ -142,113 +134,76 @@ function mostrarErroCatalogo(mensagem) {
   });
 }
 
-
 // ===== CARREGA PRODUTOS DO SUPABASE =====
 async function carregarProdutosDoSupabase() {
 
-  console.log(
-    "PedeAki: iniciando conexão com Supabase..."
-  );
+  console.log("🚀 Kamalo: carregando do Supabase...");
 
   const { data, error } = await clienteSupabase
-    .from("produtos")
+    .from("produtos_kamalo_demo")
     .select("*");
 
-
-  // Se o Supabase retornar erro
   if (error) {
 
-    console.error(
-      "PedeAki - erro do Supabase:",
-      error
-    );
+    console.error("Erro:", error);
 
     mostrarErroCatalogo(
-      "Não foi possível carregar os produtos. Abra o console do navegador (F12) para ver o erro."
+      "Erro ao carregar produtos."
     );
 
     return;
   }
 
+  if (!Array.isArray(data) || data.length === 0) {
 
-  // Confere se realmente recebemos uma lista
-  if (!Array.isArray(data)) {
-
-    console.error(
-      "PedeAki - resposta inesperada:",
-      data
-    );
+    console.warn("Nenhum produto encontrado.");
 
     mostrarErroCatalogo(
-      "O Supabase não retornou uma lista de produtos."
+      "Nenhum produto cadastrado."
     );
 
     return;
   }
 
-
-  // Mostra no console quantos produtos chegaram
   console.log(
-    `PedeAki: ${data.length} produto(s) recebido(s) do Supabase.`
+    `${data.length} produtos carregados!`
   );
 
-  // Mostra os produtos completos no console
-  console.table(data);
-
-
-  // Recupera quantidades antigas
   const quantidadesSalvas =
     carregarDadosSalvos();
 
+  // CRIA OS PRODUTOS USANDO O FOTO_URL DO BANCO
+  produtos = data.map((produto) => {
 
-  // Organiza os produtos recebidos
-  produtos = data
-    .map((produto) => {
+    const id = String(produto.id);
 
-      return {
+    return {
+      id: id,
+      nome: obterNome(produto),
+      preco: obterPreco(produto),
+      categoria: normalizarTexto(
+        produto.categoria
+      ),
+      imagem: obterImagem(produto),
 
-        id: String(produto.id),
-
-        nome: obterNome(produto),
-
-        preco: obterPreco(produto),
-
-        categoria: normalizarTexto(
-          produto.categoria
-        ),
-
-        imagem: obterImagem(produto),
-
-        qtd: Number(
-          quantidadesSalvas[
-            String(produto.id)
-          ] || 0
-        )
-
-      };
-
-    })
-    .filter((produto) => produto.nome);
-
+      // IMPORTANTE:
+      // cada produto possui sua própria quantidade
+      qtd: Number(
+        quantidadesSalvas[id] || 0
+      )
+    };
+  });
 
   console.log(
-    "PedeAki: produtos tratados:",
-    produtos
+    `${produtos.length} produtos processados`
   );
 
-
-  // Monta os cards
   inicializarCatalogo();
 
-
-  // Atualiza carrinho
   atualizarCarrinho();
 
-
-  // Mostra primeira categoria
-  mostrarCategoria("acougue");
+  mostrarCategoria("acai");
 }
-
 
 // ===== INICIALIZA CATÁLOGO =====
 function inicializarCatalogo() {
@@ -261,19 +216,12 @@ function inicializarCatalogo() {
 
     if (!container) return;
 
-
-    // Limpa o container
     container.innerHTML = "";
 
-
-    // Filtra produtos da categoria
     const filtrados = produtos.filter(
-      (produto) =>
-        produto.categoria === categoria
+      (p) => p.categoria === categoria
     );
 
-
-    // Nenhum produto encontrado
     if (filtrados.length === 0) {
 
       container.innerHTML = `
@@ -283,15 +231,13 @@ function inicializarCatalogo() {
           padding: 20px;
           color: #999;
         ">
-          Nenhum produto disponível nesta categoria.
+          Nenhum produto disponível
         </p>
       `;
 
       return;
     }
 
-
-    // Cria cada produto
     filtrados.forEach((produto) => {
 
       const card =
@@ -299,204 +245,114 @@ function inicializarCatalogo() {
 
       card.className = "produto-card";
 
-      card.dataset.id = produto.id;
+      // Guarda o ID como string
+      // para evitar problemas com UUID/texto
+      card.dataset.id =
+        String(produto.id);
 
+      card.innerHTML = `
+        <img
+          src="${produto.imagem}"
+          class="produto-imagem"
+          alt="${produto.nome}"
+          loading="lazy"
+          onerror="this.src='https://via.placeholder.com/300x300/6a1b9a/FFFFFF?text=Erro'"
+        />
 
-      // IMAGEM
-      const imagem =
-        document.createElement("img");
+        <h3 class="produto-nome">
+          ${produto.nome}
+        </h3>
 
-      imagem.className =
-        "produto-imagem";
+        <p class="produto-preco">
+          ${formatarPreco(produto.preco)}
+        </p>
 
-      imagem.src = produto.imagem;
+        <div class="controles">
 
-      imagem.alt = produto.nome;
+          <button
+            type="button"
+            class="btn-quantidade btn-diminuir"
+            data-id="${String(produto.id)}"
+          >
+            −
+          </button>
 
+          <span
+            class="quantidade"
+            id="qtd-${String(produto.id)}"
+          >
+            ${produto.qtd}
+          </span>
 
-      // Caso a imagem não exista
-      imagem.onerror = () => {
+          <button
+            type="button"
+            class="btn-quantidade btn-aumentar"
+            data-id="${String(produto.id)}"
+          >
+            +
+          </button>
 
-        imagem.src =
-          "src/images/produto-padrao.png";
+        </div>
+      `;
 
-      };
-
-
-      // NOME
-      const nome =
-        document.createElement("h3");
-
-      nome.className =
-        "produto-nome";
-
-      nome.textContent =
-        produto.nome;
-
-
-      // PREÇO
-      const preco =
-        document.createElement("p");
-
-      preco.className =
-        "produto-preco";
-
-      preco.textContent =
-        formatarPreco(produto.preco);
-
-
-      // CONTROLES
-      const controles =
-        document.createElement("div");
-
-      controles.className =
-        "controles";
-
-
-      // BOTÃO DIMINUIR
-      const btnDiminuir =
-        document.createElement("button");
-
-      btnDiminuir.type = "button";
-
-      btnDiminuir.className =
-        "btn-quantidade";
-
-      btnDiminuir.dataset.acao =
-        "diminuir";
-
-      btnDiminuir.dataset.id =
-        produto.id;
-
-      btnDiminuir.textContent = "−";
-
-
-      // QUANTIDADE
-      const quantidade =
-        document.createElement("span");
-
-      quantidade.className =
-        "quantidade";
-
-      quantidade.id =
-        `qtd-${produto.id}`;
-
-      quantidade.textContent =
-        produto.qtd;
-
-
-      // BOTÃO AUMENTAR
+      // ===== BOTÃO + =====
       const btnAumentar =
-        document.createElement("button");
+        card.querySelector(".btn-aumentar");
 
-      btnAumentar.type = "button";
-
-      btnAumentar.className =
-        "btn-quantidade";
-
-      btnAumentar.dataset.acao =
-        "aumentar";
-
-      btnAumentar.dataset.id =
-        produto.id;
-
-      btnAumentar.textContent = "+";
-
-
-      // Junta controles
-      controles.append(
-        btnDiminuir,
-        quantidade,
-        btnAumentar
+      btnAumentar.addEventListener(
+        "click",
+        () => {
+          aumentar(String(produto.id));
+        }
       );
 
+      // ===== BOTÃO - =====
+      const btnDiminuir =
+        card.querySelector(".btn-diminuir");
 
-      // Junta card
-      card.append(
-        imagem,
-        nome,
-        preco,
-        controles
+      btnDiminuir.addEventListener(
+        "click",
+        () => {
+          diminuir(String(produto.id));
+        }
       );
 
-
-      // Adiciona na tela
       container.appendChild(card);
-
     });
-
   });
-
 }
-
 
 // ===== MOSTRA CATEGORIA =====
 function mostrarCategoria(categoria) {
 
-  // Esconde todas
   document
     .querySelectorAll(".categoria")
     .forEach((secao) => {
-
       secao.classList.remove("ativa");
-
     });
 
-
-  // Mostra categoria escolhida
   const secaoAlvo =
     document.getElementById(categoria);
 
-
   if (secaoAlvo) {
-
     secaoAlvo.classList.add("ativa");
-
   }
 
-
-  // Remove ativo dos links
   document
     .querySelectorAll(".menu-categorias a")
     .forEach((link) => {
-
       link.classList.remove("ativo");
-
     });
 
-
-  // Ativa link selecionado
   const linkAlvo =
     document.querySelector(
-      `.menu-categorias a[href="#${categoria}"]`
+      `.menu-categorias a[data-categoria="${categoria}"]`
     );
-
 
   if (linkAlvo) {
-
     linkAlvo.classList.add("ativo");
-
   }
-
-
-  // Volta para o menu
-  const menu =
-    document.querySelector(
-      ".menu-categorias"
-    );
-
-
-  if (menu) {
-
-    window.scrollTo({
-      top: menu.offsetTop,
-      behavior: "smooth"
-    });
-
-  }
-
 }
-
 
 // ===== MENU DE CATEGORIAS =====
 function iniciarMenuCategorias() {
@@ -515,20 +371,12 @@ function iniciarMenuCategorias() {
             link.dataset.categoria;
 
           if (categoria) {
-
-            mostrarCategoria(
-              categoria
-            );
-
+            mostrarCategoria(categoria);
           }
-
         }
       );
-
     });
-
 }
-
 
 // ===== ABRE CARRINHO =====
 function abrirCarrinho() {
@@ -536,128 +384,102 @@ function abrirCarrinho() {
   const carrinho =
     document.querySelector(".carrinho");
 
-
   if (!carrinho) return;
-
 
   carrinho.scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
-
 }
-
 
 // ===== AUMENTAR =====
 function aumentar(id) {
 
-  const produto =
-    produtos.find(
-      (item) =>
-        String(item.id) ===
-        String(id)
-    );
+  id = String(id);
 
-
-  if (!produto) return;
-
-
-  produto.qtd += 1;
-
-
-  atualizarQuantidadeNaTela(
-    produto
+  // Procura SOMENTE o produto clicado
+  const produto = produtos.find(
+    (item) =>
+      String(item.id) === id
   );
 
+  if (!produto) {
+
+    console.error(
+      "Produto não encontrado:",
+      id
+    );
+
+    return;
+  }
+
+  // IMPORTANTE:
+  // aumenta somente a quantidade deste produto.
+  //
+  // Exemplo:
+  // Produto A = 1
+  // clicar + = 2
+  // clicar + = 3
+  //
+  // Isso NÃO altera nenhum outro produto.
+  produto.qtd =
+    Number(produto.qtd || 0) + 1;
+
+  const el =
+    document.getElementById(`qtd-${id}`);
+
+  if (el) {
+    el.textContent = produto.qtd;
+  }
 
   salvarDados();
 
   atualizarCarrinho();
-
 }
-
 
 // ===== DIMINUIR =====
 function diminuir(id) {
 
-  const produto =
-    produtos.find(
-      (item) =>
-        String(item.id) ===
-        String(id)
-    );
+  id = String(id);
 
-
-  if (!produto) return;
-
-
-  if (produto.qtd <= 0) return;
-
-
-  produto.qtd -= 1;
-
-
-  atualizarQuantidadeNaTela(
-    produto
+  // Procura SOMENTE o produto clicado
+  const produto = produtos.find(
+    (item) =>
+      String(item.id) === id
   );
 
+  if (!produto) {
 
-  salvarDados();
-
-  atualizarCarrinho();
-
-}
-
-
-// ===== ATUALIZA QUANTIDADE NO CARD =====
-function atualizarQuantidadeNaTela(
-  produto
-) {
-
-  const elemento =
-    document.getElementById(
-      `qtd-${produto.id}`
+    console.error(
+      "Produto não encontrado:",
+      id
     );
 
-
-  if (elemento) {
-
-    elemento.textContent =
-      produto.qtd;
-
+    return;
   }
 
-}
+  if (Number(produto.qtd) <= 0) {
+    return;
+  }
 
-
-// ===== REMOVE ITEM =====
-function removerItem(id) {
-
-  const produto =
-    produtos.find(
-      (item) =>
-        String(item.id) ===
-        String(id)
+  // Diminui somente este produto
+  produto.qtd =
+    Math.max(
+      0,
+      Number(produto.qtd || 0) - 1
     );
 
+  const el =
+    document.getElementById(`qtd-${id}`);
 
-  if (!produto) return;
-
-
-  produto.qtd = 0;
-
-
-  atualizarQuantidadeNaTela(
-    produto
-  );
-
+  if (el) {
+    el.textContent = produto.qtd;
+  }
 
   salvarDados();
 
   atualizarCarrinho();
-
 }
-
 
 // ===== ATUALIZA CARRINHO =====
 function atualizarCarrinho() {
@@ -667,48 +489,54 @@ function atualizarCarrinho() {
       "lista-produtos"
     );
 
-
   const totalDisplay =
     document.getElementById(
       "total-pedido"
     );
-
 
   const contador =
     document.getElementById(
       "carrinho-contador"
     );
 
-
   if (!lista || !totalDisplay) {
     return;
   }
 
-
   lista.innerHTML = "";
-
 
   let total = 0;
 
-  let quantidadeTotal = 0;
-
+  // Quantidade de produtos DIFERENTES
+  let produtosNoCarrinho = 0;
 
   produtos.forEach((produto) => {
 
-    if (produto.qtd <= 0) {
+    const qtd =
+      Number(produto.qtd || 0);
+
+    // Produto sem quantidade não aparece
+    if (qtd <= 0) {
       return;
     }
 
+    const preco =
+      Number(produto.preco || 0);
 
     const subtotal =
-      produto.preco *
-      produto.qtd;
-
+      preco * qtd;
 
     total += subtotal;
 
-quantidadeTotal += 1;
-
+    // Conta cada produto somente uma vez
+    //
+    // Produto A = 10
+    // Produto B = 2
+    //
+    // produtosNoCarrinho = 2
+    //
+    // e NÃO 12.
+    produtosNoCarrinho += 1;
 
     const item =
       document.createElement("div");
@@ -716,216 +544,139 @@ quantidadeTotal += 1;
     item.className =
       "carrinho-item";
 
+    item.innerHTML = `
+      <span>
+        ${qtd}x ${produto.nome}
+      </span>
 
-    const nome =
-      document.createElement("span");
-
-    nome.textContent =
-      `${produto.qtd}x ${produto.nome}`;
-
-
-    const direita =
-      document.createElement("span");
-
-    direita.className =
-      "carrinho-item-direita";
-
-
-    const valor =
-      document.createElement("span");
-
-    valor.textContent =
-      formatarPreco(subtotal);
-
-
-    const remover =
-      document.createElement("button");
-
-    remover.type = "button";
-
-    remover.className =
-      "btn-remover";
-
-    remover.title =
-      "Remover item";
-
-    remover.dataset.acao =
-      "remover";
-
-    remover.dataset.id =
-      produto.id;
-
-    remover.textContent =
-      "✕";
-
-
-    direita.append(
-      valor,
-      remover
-    );
-
-
-    item.append(
-      nome,
-      direita
-    );
-
-
-    lista.appendChild(item);
-
-  });
-
-
-  // Carrinho vazio
-  if (quantidadeTotal === 0) {
-
-    lista.innerHTML = `
-      <p class="carrinho-vazio">
-        🛒 Seu carrinho está vazio
-      </p>
+      <span>
+        ${formatarPreco(subtotal)}
+      </span>
     `;
 
+    lista.appendChild(item);
+  });
+
+  if (produtosNoCarrinho === 0) {
+
+    lista.innerHTML =
+      '<p class="carrinho-vazio">Seu carrinho está vazio</p>';
   }
 
-
-  // Total
   totalDisplay.textContent =
     formatarPreco(total);
 
-
-  // Contador
   if (contador) {
 
+    // Mostra a quantidade de produtos
+    // diferentes no carrinho.
+    //
+    // Exemplo:
+    // Produto A = 10
+    // Produto B = 2
+    //
+    // contador = 2
+    //
+    // A quantidade de cada produto
+    // continua independente.
     contador.textContent =
-      quantidadeTotal;
-
+      produtosNoCarrinho;
   }
-
 }
 
-
-// ===== FINALIZA PEDIDO =====
+// ===== FINALIZAR PEDIDO =====
 function finalizarPedido() {
 
   const nome =
     document
-      .getElementById(
-        "nome-cliente"
-      )
-      ?.value.trim() || "";
-
+      .getElementById("nome-cliente")
+      ?.value
+      .trim() || "";
 
   const endereco =
     document
-      .getElementById(
-        "endereco-cliente"
-      )
-      ?.value.trim() || "";
-
+      .getElementById("endereco-cliente")
+      ?.value
+      .trim() || "";
 
   const observacao =
     document
-      .getElementById(
-        "observacao-cliente"
-      )
-      ?.value.trim() || "";
+      .getElementById("observacao-cliente")
+      ?.value
+      .trim() || "";
 
-
-  // Validação
   if (!nome || !endereco) {
 
     alert(
-      "⚠️ Por favor, preencha seu NOME e ENDEREÇO!"
+      "Preencha seu NOME e ENDEREÇO!"
     );
 
     return;
-
   }
 
-
-  // Pega produtos selecionados
   const itens =
     produtos.filter(
-      (produto) =>
-        produto.qtd > 0
+      (p) =>
+        Number(p.qtd || 0) > 0
     );
 
-
-  // Carrinho vazio
   if (itens.length === 0) {
 
     alert(
-      "⚠️ Seu carrinho está vazio!"
+      "Seu carrinho está vazio!"
     );
 
     return;
-
   }
-
-
-  let totalPedido = 0;
-
 
   let mensagem =
     `Olá! Meu nome é ${nome}.\n`;
 
-
   mensagem +=
     `Endereço para entrega: ${endereco}\n`;
-
 
   if (observacao) {
 
     mensagem +=
       `Observação: ${observacao}\n`;
-
   }
 
-
   mensagem +=
-    `\n📋 *Meu pedido:*\n\n`;
+    `\nMEU PEDIDO:\n\n`;
 
+  let totalPedido = 0;
 
-  // Lista produtos
-  itens.forEach((produto) => {
+  itens.forEach((p) => {
+
+    const qtd =
+      Number(p.qtd || 0);
+
+    const preco =
+      Number(p.preco || 0);
 
     const subtotal =
-      produto.preco *
-      produto.qtd;
-
+      preco * qtd;
 
     mensagem +=
-      `• ${produto.qtd}x ${produto.nome} - ${formatarPreco(subtotal)}\n`;
+      `${qtd}x ${p.nome} - ${formatarPreco(subtotal)}\n`;
 
-
-    totalPedido +=
-      subtotal;
-
+    totalPedido += subtotal;
   });
 
-
   mensagem +=
-    `\n*💰 Total: ${formatarPreco(totalPedido)}*`;
+    `\nTOTAL: ${formatarPreco(totalPedido)}`;
 
-
-  // WhatsApp
   const numeroWhatsApp =
     "5563999665779";
 
-
   const urlWhatsApp =
-    `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(
-      mensagem
-    )}`;
-
+    `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
 
   window.open(
     urlWhatsApp,
     "_blank"
   );
-
 }
-
 
 // ===== CARROSSEL =====
 function iniciarCarrossel() {
@@ -935,217 +686,78 @@ function iniciarCarrossel() {
       ".slide"
     );
 
-
   if (!slides.length) {
     return;
   }
 
+  slides.forEach(
+    (slide, index) => {
 
-  mostrarSlide(
-    slides,
-    0
+      if (index === 0) {
+        slide.classList.add("active");
+      }
+    }
   );
-
 
   intervaloCarrossel =
     setInterval(() => {
+
+      slides.forEach(
+        (s) =>
+          s.classList.remove("active")
+      );
 
       slideAtual =
         (slideAtual + 1) %
         slides.length;
 
-
-      mostrarSlide(
-        slides,
+      slides[
         slideAtual
-      );
+      ].classList.add("active");
 
     }, 3000);
-
 }
-
-
-// ===== MOSTRA SLIDE =====
-function mostrarSlide(
-  slides,
-  indice
-) {
-
-  slides.forEach((slide) => {
-
-    slide.classList.remove(
-      "active"
-    );
-
-  });
-
-
-  if (slides[indice]) {
-
-    slides[indice].classList.add(
-      "active"
-    );
-
-  }
-
-}
-
-
-// ===== EVENTOS DOS PRODUTOS =====
-function iniciarEventosProdutos() {
-
-  document.addEventListener(
-    "click",
-    (evento) => {
-
-      const botao =
-        evento.target.closest(
-          "[data-acao]"
-        );
-
-
-      if (!botao) {
-        return;
-      }
-
-
-      const acao =
-        botao.dataset.acao;
-
-
-      const id =
-        botao.dataset.id;
-
-
-      if (acao === "aumentar") {
-
-        aumentar(id);
-
-      }
-
-
-      if (acao === "diminuir") {
-
-        diminuir(id);
-
-      }
-
-
-      if (acao === "remover") {
-
-        removerItem(id);
-
-      }
-
-    }
-  );
-
-}
-
 
 // ===== INICIA SISTEMA =====
 document.addEventListener(
   "DOMContentLoaded",
-  async () => {
+  function () {
+
+    console.log(
+      "🚀 Kamalo iniciado!"
+    );
 
     iniciarMenuCategorias();
 
-    iniciarEventosProdutos();
-
     iniciarCarrossel();
 
-
-    // Botão carrinho
     document
-      .getElementById(
-        "btn-carrinho-flutuante"
-      )
-      ?.addEventListener(
-        "click",
-        abrirCarrinho
-      );
-
-
-    // Botão finalizar
-    document
-      .getElementById(
-        "btn-finalizar"
-      )
+      .getElementById("btn-finalizar")
       ?.addEventListener(
         "click",
         finalizarPedido
       );
 
-
-    // Botão topo
     document
-      .getElementById(
-        "btn-topo"
-      )
+      .getElementById("btn-carrinho-flutuante")
       ?.addEventListener(
         "click",
-        () => {
+        abrirCarrinho
+      );
+
+    document
+      .getElementById("btn-topo")
+      ?.addEventListener(
+        "click",
+        function () {
 
           window.scrollTo({
             top: 0,
             behavior: "smooth"
           });
-
         }
       );
 
-
-    // Pausa carrossel quando sai da página
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-
-        const slides =
-          document.querySelectorAll(
-            ".slide"
-          );
-
-
-        if (document.hidden) {
-
-          clearInterval(
-            intervaloCarrossel
-          );
-
-        } else if (
-          slides.length > 1
-        ) {
-
-          clearInterval(
-            intervaloCarrossel
-          );
-
-
-          intervaloCarrossel =
-            setInterval(() => {
-
-              slideAtual =
-                (slideAtual + 1) %
-                slides.length;
-
-
-              mostrarSlide(
-                slides,
-                slideAtual
-              );
-
-            }, 3000);
-
-        }
-
-      }
-    );
-
-
-    // IMPORTANTE:
-    // Carrega os produtos depois que
-    // toda a página estiver pronta.
-    await carregarProdutosDoSupabase();
-
+    carregarProdutosDoSupabase();
   }
 );
